@@ -1,11 +1,11 @@
 {
-    recheck = false,
-    options = {
-        plat = "macosx",
-        arch = "x86_64",
-        mode = "debug"
-    },
     mtimes = {
         ["xmake.lua"] = 1736996639
+    },
+    recheck = false,
+    options = {
+        arch = "x86_64",
+        mode = "debug",
+        plat = "macosx"
     }
 }

@@ -16,14 +16,16 @@ public:
     Profile(const char* name = "default") : m_name(name), m_startTime(0), m_endTime(0)
     {
         m_startTime = GetCurrentTime();
-        m_startStackMemory = GetCurrentStackMemoryUsage();
+        // m_startStackMemory = GetCurrentStackMemoryUsage();
         m_startHeapMemory = Profile::m_totalHeapMemoryUsage;
+        m_startDynamicMemory = Profile::m_dynamicMemoryUsage;
     }
     ~Profile()
     {
         m_endTime = GetCurrentTime();
-        m_endStackMemory = GetCurrentStackMemoryUsage();
+        // m_endStackMemory = GetCurrentStackMemoryUsage();
         m_endHeapMemory = Profile::m_totalHeapMemoryUsage;
+        m_endDynamicMemory = Profile::m_dynamicMemoryUsage;
         printStats();
     }
     double GetDuration() const
@@ -32,19 +34,9 @@ public:
     }
     size_t GetMemoryDelta() const
     {
-        return (m_endStackMemory - m_startStackMemory) + (m_endHeapMemory - m_startHeapMemory);
+        return (m_endStackMemory - m_startStackMemory) + (m_endHeapMemory - m_startHeapMemory) + (m_dynamicMemoryUsage - m_startDynamicMemory);
     }
 public:
-    static void AddMemoryUsage(size_t size)
-    {
-        m_totalHeapMemoryUsage += size;
-    }
-
-    static void SubtractMemoryUsage(size_t size)
-    {
-        m_totalHeapMemoryUsage -= size;
-    }
-
     static size_t GetTotalMemoryUsage()
     {
         return m_totalHeapMemoryUsage;
@@ -82,34 +74,70 @@ private:
     size_t m_endStackMemory;   
     size_t m_startHeapMemory;
     size_t m_endHeapMemory;
-
+    size_t m_startDynamicMemory;
+    size_t m_endDynamicMemory;
+public:
+    static size_t m_dynamicMemoryUsage;
     static size_t m_totalHeapMemoryUsage;
 };
+size_t Profile::m_dynamicMemoryUsage = 0;
 size_t Profile::m_totalHeapMemoryUsage = 0;
 
 void* my_alloc_func(void* user, cgltf_size size)
 {
     void* ptr = malloc(size);
-    Profile::AddMemoryUsage(size);
+    Profile::m_totalHeapMemoryUsage += size;
     // std::cout << "Allocating " << size << " bytes at " << ptr << std::endl;
     return ptr;
 }
+void* operator new(std::size_t size) {
+    Profile::m_dynamicMemoryUsage += size;
+    return std::malloc(size);
+}
+void* operator new[](std::size_t size) {
+    Profile::m_dynamicMemoryUsage += size;
+    return std::malloc(size);
+}
+void operator delete(void* ptr) noexcept {
+    std::free(ptr);
+}
+void operator delete[](void* ptr) noexcept {
+    std::free(ptr);
+}
+
+
 
 // 移除了node的材质，tiny成功加载，cgltf无法加载
-static const std::string abPath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/glTF-Sample-Assets/Models/DragonDispersion/glTF/DragonDispersion.gltf";
+// static const std::string abPath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/glTF-Sample-Assets/Models/DragonDispersion/glTF/DragonDispersion.gltf";
 
 // //均正常加载
 // static const std::string relativePath = "./Assets/glTF-Sample-Assets/Models/DamagedHelmet/glTF/DamagedHelmet.gltf";
 // static const std::string absolutePath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/glTF-Sample-Assets/Models/DamagedHelmet/glTF/DamagedHelmet.gltf";
 
-// blender导出无材质龙，cgltf无法加载
-static const std::string dragonAbsolutePath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/dragon.glb"; // cgltf无法加载
+// blender导出无材质多条龙，cgltf无法加载
+// static const std::string abPath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/dragon.glb"; // cgltf无法加载
+
+// static const std::string abPath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/OneDragon.glb";
+
+// static const std::string abPath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/dragon.gltf";
+
+//Sponza
+// static const std::string abPath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/Sponza.glb";
+static const std::string abPath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/Sponza.gltf";
 
 
 
 int main ()
 {
     Profile profile("main");
+
+    // 文件大小
+    {
+        std::filesystem::path filePath(abPath);
+        std::cout << "File size:"
+                  << std::filesystem::file_size(filePath) / 1024.0 / 1024.0 << "MB" <<std::endl;
+    }
+
     // cgltf
     {
         Profile profile("cgltf");
@@ -117,7 +145,7 @@ int main ()
         cgltf_options options = {};
         options.memory.alloc_func = my_alloc_func;
         cgltf_data *data = NULL;
-        cgltf_result result = cgltf_parse_file(&options, dragonAbsolutePath.c_str(), &data);
+        cgltf_result result = cgltf_parse_file(&options, abPath.c_str(), &data);
         if (result == cgltf_result_success)
         	cgltf_free(data);
     }
@@ -130,7 +158,7 @@ int main ()
         tinygltf::TinyGLTF loader;
         std::string err;
         std::string warn;
-        bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, dragonAbsolutePath.c_str());
+        bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, abPath.c_str());
         if (!warn.empty()) {
             std::cout << "Warn: " << warn << std::endl;
         }
