@@ -1,0 +1,3 @@
+[ 50%]: cache compiling.debug Src/main.cpp
+[ 75%]: linking.debug tinyc
+[100%]: build ok, spent 7.094s
