@@ -37,6 +37,11 @@
         "xmake build",
         "xmake run",
         "xmake l /Users/vanish/.vscode/extensions/tboox.xmake-vscode-2.4.0/assets/explorer.lua",
-        "xmake l /Users/vanish/.vscode/extensions/tboox.xmake-vscode-2.4.0/assets/explorer.lua"
+        "xmake l /Users/vanish/.vscode/extensions/tboox.xmake-vscode-2.4.0/assets/explorer.lua",
+        "xmake ",
+        "xmake ",
+        "xmake run",
+        "xmake ",
+        "xmake run"
     }
 }

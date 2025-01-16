@@ -1,4 +1,9 @@
 {
+    depfiles_gcc = "build/.objs/tinyc/macosx/x86_64/debug/Src/__cpp_main.cpp.cpp:   Src/main.cpp Src/cgltf.h\
+",
+    files = {
+        "Src/main.cpp"
+    },
     values = {
         "/usr/local/Cellar/llvm/19.1.6/bin/clang",
         {
@@ -19,10 +24,5 @@
             "-isystem",
             "/Users/vanish/.xmake/packages/n/nlohmann_json/v3.11.3/07dbd8c7f12347f583937915168be7dc/include"
         }
-    },
-    files = {
-        "Src/main.cpp"
-    },
-    depfiles_gcc = "build/.objs/tinyc/macosx/x86_64/debug/Src/__cpp_main.cpp.cpp:   Src/main.cpp Src/cgltf.h\
-"
+    }
 }

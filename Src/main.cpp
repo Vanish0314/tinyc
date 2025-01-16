@@ -16,13 +16,13 @@ public:
     Profile(const char* name = "default") : m_name(name), m_startTime(0), m_endTime(0)
     {
         m_startTime = GetCurrentTime();
-        m_startStackMemory = GetCurrentMemoryUsage();
+        m_startStackMemory = GetCurrentStackMemoryUsage();
         m_startHeapMemory = Profile::m_totalHeapMemoryUsage;
     }
     ~Profile()
     {
         m_endTime = GetCurrentTime();
-        m_endStackMemory = GetCurrentMemoryUsage();
+        m_endStackMemory = GetCurrentStackMemoryUsage();
         m_endHeapMemory = Profile::m_totalHeapMemoryUsage;
         printStats();
     }
@@ -59,7 +59,7 @@ private:
         return duration_cast<std::chrono::duration<double>>(duration).count();
     }
 
-    size_t GetCurrentMemoryUsage() // return bytes
+    size_t GetCurrentStackMemoryUsage() // return bytes
     {
         struct rusage usage;
         if (getrusage(RUSAGE_SELF, &usage) == 0)
@@ -95,8 +95,17 @@ void* my_alloc_func(void* user, cgltf_size size)
     return ptr;
 }
 
-static const std::string relativePath = "./Assets/glTF-Sample-Assets/Models/DamagedHelmet/glTF/DamagedHelmet.gltf";
-static const std::string absolutePath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/glTF-Sample-Assets/Models/DamagedHelmet/glTF/DamagedHelmet.gltf";
+// 移除了node的材质，tiny成功加载，cgltf无法加载
+static const std::string abPath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/glTF-Sample-Assets/Models/DragonDispersion/glTF/DragonDispersion.gltf";
+
+// //均正常加载
+// static const std::string relativePath = "./Assets/glTF-Sample-Assets/Models/DamagedHelmet/glTF/DamagedHelmet.gltf";
+// static const std::string absolutePath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/glTF-Sample-Assets/Models/DamagedHelmet/glTF/DamagedHelmet.gltf";
+
+// blender导出无材质龙，cgltf无法加载
+static const std::string dragonAbsolutePath = "/Users/vanish/Desktop/WorkPlace/tinyc/Assets/dragon.glb"; // cgltf无法加载
+
+
 
 int main ()
 {
@@ -108,7 +117,7 @@ int main ()
         cgltf_options options = {};
         options.memory.alloc_func = my_alloc_func;
         cgltf_data *data = NULL;
-        cgltf_result result = cgltf_parse_file(&options, absolutePath.c_str(), &data);
+        cgltf_result result = cgltf_parse_file(&options, dragonAbsolutePath.c_str(), &data);
         if (result == cgltf_result_success)
         	cgltf_free(data);
     }
@@ -121,7 +130,7 @@ int main ()
         tinygltf::TinyGLTF loader;
         std::string err;
         std::string warn;
-        bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, absolutePath.c_str());
+        bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, dragonAbsolutePath.c_str());
         if (!warn.empty()) {
             std::cout << "Warn: " << warn << std::endl;
         }
